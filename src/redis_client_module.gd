@@ -6,6 +6,9 @@ var _host: String = "127.0.0.1"
 var _port: int = 4003
 var _tcp: StreamPeerTCP = null
 var _connected: bool = false
+var _connecting: bool = false
+var _connect_callback: Callable = Callable()
+var _connect_deadline_ms: int = 0
 
 ## Connects to Redis. Returns true on success.
 func connect_to_server(host: String = "127.0.0.1", port: int = 4003, timeout_ms: int = 3000) -> bool:
@@ -48,6 +51,54 @@ func disconnect_from_server() -> void:
 		_tcp.disconnect_from_host()
 		_tcp = null
 	_connected = false
+
+## Async connection. Calls callback(success: bool) when resolved.
+func connect_async(host: String, port: int, callback: Callable, timeout_ms: int = 3000) -> void:
+	disconnect_from_server()
+	_host = host
+	_port = port
+	_tcp = StreamPeerTCP.new()
+	var err: Error = _tcp.connect_to_host(_host, _port)
+	if err != OK:
+		_tcp = null
+		callback.call(false)
+		return
+	_connecting = true
+	_connect_callback = callback
+	_connect_deadline_ms = Time.get_ticks_msec() + timeout_ms
+
+## Poll connection state. Call each frame until it returns true (resolved).
+func poll_connect() -> bool:
+	if not _connecting:
+		return true
+	if _tcp == null:
+		_finish_connect(false)
+		return true
+	_tcp.poll()
+	var status: StreamPeerTCP.Status = _tcp.get_status()
+	if status == StreamPeerTCP.STATUS_CONNECTED:
+		_tcp.set_no_delay(true)
+		_connected = true
+		_finish_connect(true)
+		return true
+	if status == StreamPeerTCP.STATUS_ERROR:
+		_tcp = null
+		_finish_connect(false)
+		return true
+	if Time.get_ticks_msec() >= _connect_deadline_ms:
+		_tcp.disconnect_from_host()
+		_tcp = null
+		_finish_connect(false)
+		return true
+	return false
+
+func _finish_connect(success: bool) -> void:
+	_connecting = false
+	var cb: Callable = _connect_callback
+	_connect_callback = Callable()
+	_connect_deadline_ms = 0
+	if cb.is_valid():
+		cb.call(success)
 
 ## SET key value EX ttl_seconds. Returns true on success.
 func set_value(key: String, value: String, ttl_seconds: int = 0) -> bool:
