@@ -10,7 +10,7 @@ This addon is intentionally a low-level Redis helper. It does not own app persis
 `gdpm install @aviorstudio/gd-redis`
 
 ### Manual
-Copy this directory into `addons/@aviorstudio_gd-redis/` and enable the plugin.
+Copy `addon/` into `addons/@aviorstudio_gd-redis/` and enable the plugin.
 
 ## Quick Start
 

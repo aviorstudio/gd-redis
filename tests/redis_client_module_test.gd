@@ -1,6 +1,6 @@
 extends SceneTree
 
-const RedisClientModule = preload("res://src/redis_client_module.gd")
+const RedisClientModule = preload("res://addon/src/redis_client_module.gd")
 
 func _init() -> void:
 	_test_disconnected_operations_are_safe()
