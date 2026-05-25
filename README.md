@@ -1,16 +1,18 @@
 # gd-redis
 
-Minimal Redis client for Godot 4 using RESP over TCP.
+Connect to Redis from Godot 4 native or server builds using the RESP protocol over TCP.
 
-This addon is intentionally a low-level Redis helper. It does not own app persistence policy, cache invalidation, matchmaking recovery, or game-specific key naming.
+Use this addon for tools, dedicated servers, local development utilities, or controlled backend-style Godot processes that need simple Redis commands.
 
 ## Installation
 
 ### Via gdpm
+
 `gdpm install @aviorstudio/gd-redis`
 
 ### Manual
-Copy `addon/` into `addons/@aviorstudio_gd-redis/` and enable the plugin.
+
+Copy `addon/` into `res://addons/@aviorstudio_gd-redis/` and enable the plugin.
 
 ## Quick Start
 
@@ -18,45 +20,37 @@ Copy `addon/` into `addons/@aviorstudio_gd-redis/` and enable the plugin.
 const RedisClientModule = preload("res://addons/@aviorstudio_gd-redis/src/redis_client_module.gd")
 
 var redis := RedisClientModule.new()
+
 if redis.connect_to_server("127.0.0.1", 6379):
 	redis.set_value("example:key", "value", 60)
-	var value: String = redis.get_value("example:key")
+	var value: Variant = redis.get_value_or_null("example:key")
+	print(value)
 ```
 
-## API Reference
+## Common Commands
 
-- `connect_to_server(host, port, timeout_ms)`: blocking connection helper.
-- `connect_async(host, port, callback, timeout_ms)` plus `poll_connect()`: non-blocking connection setup.
-- `set_value(key, value, ttl_seconds)`: `SET`, optionally with `EX` TTL.
-- `get_value(key)`: `GET`, returning an empty string for missing values or empty stored values.
-- `get_value_or_null(key)`: `GET`, returning `null` for missing values.
-- `del_key(key)`: `DEL`.
-- `scan_keys(pattern, count)`: incremental `SCAN` wrapper that avoids `KEYS` for production-style discovery.
-- `keys(pattern)`: direct `KEYS`; useful for local tools only.
-- `ping()`: `PING`.
-- `flushdb()`: disabled unless dangerous commands are explicitly enabled.
-
-## Blocking Behavior
-
-Most command methods are synchronous and poll the TCP peer while waiting for a response. Use them from server/headless code, tooling, or controlled lifecycle points. Avoid calling synchronous Redis operations in hot gameplay frames.
+- `connect_to_server(host, port, timeout_ms)`: connect synchronously.
+- `connect_async(host, port, callback, timeout_ms)` and `poll_connect()`: connect without blocking startup.
+- `set_value(key, value, ttl_seconds)`: run `SET`, optionally with an `EX` TTL.
+- `get_value(key)`: run `GET`, returning an empty string for missing or empty values.
+- `get_value_or_null(key)`: run `GET`, returning `null` for missing values.
+- `del_key(key)`: run `DEL`.
+- `scan_keys(pattern, count)`: iterate keys without using `KEYS`.
+- `ping()`: check the connection.
 
 ## Dangerous Commands
 
-`flushdb()` is disabled by default. Enable it only in test or local tooling code:
+`flushdb()` is disabled by default. Enable it only in tests or local tools:
 
 ```gdscript
 redis.set_dangerous_commands_enabled(true)
 redis.flushdb()
 ```
 
-## Scope Boundary
+## Notes
 
-- In scope: minimal RESP command helpers and typed convenience methods.
-- Out of scope: cache policy, game key schemas, matchmaking recovery, TLS, and production Redis cluster management.
-
-## Compatibility
-
-- Godot 4.x native/server builds.
+- Most command methods are synchronous and wait for the TCP peer to respond.
+- Avoid synchronous Redis operations in hot gameplay frames.
 - Web exports cannot use raw TCP sockets.
 - TLS and Redis Cluster are not currently supported.
 
