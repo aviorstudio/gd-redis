@@ -6,9 +6,9 @@ Use this addon for tools, dedicated servers, local development utilities, or con
 
 ## Installation
 
-### Via gdpm
+### Via gdam
 
-`gdpm install @aviorstudio/gd-redis`
+`gdam install @aviorstudio/gd-redis`
 
 ### Manual
 
