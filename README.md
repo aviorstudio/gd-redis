@@ -80,3 +80,14 @@ CI runs the same test script when available.
 ## License
 
 MIT
+
+## Tests
+
+Run `./tests/test.sh` with Godot and Docker installed. The suite starts a pinned,
+disposable Redis container on a random loopback port and removes it on exit.
+To use an existing local test Redis, set `REDIS_TEST_PORT`; the integration test
+uses only unique keys with a 30-second TTL and never flushes the database.
+Tests cover ASCII, accented text, CJK, emoji, CRLF, empty/large values, Unicode
+keys, and subsequent commands on the same connection. RESP bulk lengths count
+UTF-8 bytes, as required by the
+[Redis protocol](https://redis.io/docs/latest/develop/reference/protocol-spec/#bulk-strings).
