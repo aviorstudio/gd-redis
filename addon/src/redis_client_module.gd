@@ -188,7 +188,7 @@ func _send_command(args: Array) -> void:
 	var cmd: String = "*%d\r\n" % args.size()
 	for arg in args:
 		var s: String = str(arg)
-		cmd += "$%d\r\n%s\r\n" % [s.length(), s]
+		cmd += "$%d\r\n%s\r\n" % [s.to_utf8_buffer().size(), s]
 	_tcp.put_data(cmd.to_utf8_buffer())
 
 func _read_line() -> String:
