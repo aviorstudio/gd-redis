@@ -1,0 +1,7 @@
+autoload.gd
+autoload.gd.uid
+plugin.cfg
+plugin.gd
+plugin.gd.uid
+src/redis_client_module.gd
+src/redis_client_module.gd.uid

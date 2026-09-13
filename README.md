@@ -75,7 +75,10 @@ Run locally with:
 ./tests/test.sh
 ```
 
-CI runs the same test script when available.
+**Correction (fieldsofrevik#150):** CI and release run the mandatory Godot
+suite, runner negative controls, closed-manifest package checks, and a packaged
+editor lifecycle. Earlier wording said the suite ran "when available", which
+could imply that a missing suite was allowed to pass.
 
 ## License
 
