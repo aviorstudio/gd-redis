@@ -26,5 +26,5 @@ func _init() -> void:
 		quit(1)
 		return
 	redis.disconnect_from_server()
-	print("PASS Redis UTF-8 round trips")
+	print("PASS gd-redis redis_utf8_integration_test")
 	quit()
