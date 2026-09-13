@@ -37,6 +37,12 @@ if redis.connect_to_server("127.0.0.1", 6379):
 - `del_key(key)`: run `DEL`.
 - `scan_keys(pattern, count)`: iterate keys without using `KEYS`.
 - `ping()`: check the connection.
+- `request(args)`, `poll_io()`, `take_result(id)`, and `cancel(id)`: submit
+  bounded non-blocking commands and consume typed `RedisResult` outcomes.
+
+Bulk replies remain `PackedByteArray` through the incremental API so binary data
+is not decoded or changed. The convenience string methods decode bulk bytes as
+UTF-8 for existing server/tooling consumers.
 
 ## Dangerous Commands
 
@@ -49,10 +55,17 @@ redis.flushdb()
 
 ## Notes
 
-- Most command methods are synchronous and wait for the TCP peer to respond.
+- Convenience command methods are synchronous wrappers over bounded incremental
+  I/O. Connect, write, inactivity, and absolute-response deadlines are 3, 2, 2,
+  and 5 seconds respectively.
 - Avoid synchronous Redis operations in hot gameplay frames.
 - Web exports cannot use raw TCP sockets.
-- TLS and Redis Cluster are not currently supported.
+- This release targets the confirmed private Docker-network deployment; TLS,
+  Redis AUTH/ACL setup, and Redis Cluster are not currently supported.
+- Commands/bulk values are limited to 8 MiB, buffered input to 16 MiB, nesting
+  to 16, aggregate RESP elements to 4,096, and pending requests/replies to 64.
+  Protocol, limit, timeout, cancellation, and mid-frame disconnect failures close
+  the connection so a later command cannot consume a stale reply.
 
 ## Repository Layout
 
@@ -90,7 +103,8 @@ Run `./tests/test.sh` with Godot and Docker installed. The suite starts a pinned
 disposable Redis container on a random loopback port and removes it on exit.
 To use an existing local test Redis, set `REDIS_TEST_PORT`; the integration test
 uses only unique keys with a 30-second TTL and never flushes the database.
-Tests cover ASCII, accented text, CJK, emoji, CRLF, empty/large values, Unicode
-keys, and subsequent commands on the same connection. RESP bulk lengths count
-UTF-8 bytes, as required by the
+Tests cover arbitrary and byte-by-byte fragmentation, pipelines, binary and
+Unicode bulk strings, malformed/oversized lengths, nesting and aggregate bounds,
+stalls, absolute deadlines, cancellation, mid-frame disconnects, and normal
+Redis integration. RESP bulk lengths count UTF-8 bytes, as required by the
 [Redis protocol](https://redis.io/docs/latest/develop/reference/protocol-spec/#bulk-strings).
