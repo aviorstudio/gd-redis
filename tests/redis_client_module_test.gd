@@ -5,6 +5,7 @@ const RedisClientModule = preload("res://addon/src/redis_client_module.gd")
 func _init() -> void:
 	_test_disconnected_operations_are_safe()
 	_test_dangerous_commands_disabled_by_default()
+	_test_unclaimed_results_are_bounded()
 	print("PASS gd-redis redis_client_module_test")
 	quit()
 
@@ -20,6 +21,12 @@ func _test_dangerous_commands_disabled_by_default() -> void:
 	_assert(not redis.flushdb(), "flushdb should be disabled by default")
 	redis.set_dangerous_commands_enabled(true)
 	_assert(not redis.flushdb(), "enabled flushdb should still fail while disconnected")
+
+func _test_unclaimed_results_are_bounded() -> void:
+	var redis := RedisClientModule.new()
+	for _index in range(64):
+		redis.request(["PING"])
+	_assert(redis.request(["PING"]) == -1, "unclaimed results must be bounded at 64")
 
 func _assert(condition: bool, message: String) -> void:
 	if not condition:
