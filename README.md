@@ -82,6 +82,18 @@ The version in `addon/plugin.cfg` is the addon package version. Releases are cre
 
 ## Testing
 
+CI and release also check the pinned GDAM action input contracts, including
+negative/restored controls for unsupported publish inputs and a positive control
+for the valid install `version: v0.0.8`. Run these without Godot or Redis
+(on Linux x86_64 with Python 3.12 or 3.13):
+
+```sh
+python3 -m venv /tmp/gd-redis-workflow-contract
+/tmp/gd-redis-workflow-contract/bin/pip install --require-hashes -r tests/workflow-contract-requirements.txt
+/tmp/gd-redis-workflow-contract/bin/python scripts/check-workflow-contract.py
+/tmp/gd-redis-workflow-contract/bin/python -m unittest discover -s tests -p 'test_workflow_contract.py' -v
+```
+
 Run locally with:
 
 ```sh
