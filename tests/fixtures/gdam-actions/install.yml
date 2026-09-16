@@ -1,0 +1,83 @@
+name: 'Install GDAM'
+description: 'Install the gdam CLI (Godot Addon Manager) and put it on PATH'
+
+inputs:
+  version:
+    description: >-
+      Release to install: "latest", or a version with or without the leading v
+      ("0.0.7" and "v0.0.7" are the same). Pin it if you want reproducible runs.
+    required: false
+    default: 'latest'
+  install-dir:
+    description: >-
+      Where to put the binary. The default is under the runner temp directory,
+      which needs no sudo and disappears with the job.
+    required: false
+    default: ''
+  token:
+    description: >-
+      Token for the GitHub API call that resolves "latest". Defaults to the
+      workflow's own token, so callers need do nothing.
+
+      It is here because the unauthenticated API allows 60 requests an hour PER
+      IP ADDRESS and runners share addresses -- macOS runners heavily enough
+      that resolving "latest" returned 403 several times an hour, failing
+      installs intermittently in every repository using this action. A token
+      scopes that limit to the token instead: 1000/hour per repository.
+
+      Pass a different one only if the release you are installing lives
+      somewhere the workflow's own token cannot read.
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  version:
+    description: 'The version actually installed, as reported by gdam --version'
+    value: ${{ steps.install.outputs.version }}
+
+runs:
+  using: 'composite'
+  steps:
+    # Delegates to gdam's own install script rather than reimplementing the
+    # download here, so there is one definition of how gdam gets installed. The
+    # script resolves "latest", normalizes the tag, picks the right OS/arch
+    # artifact, and — unlike a plain `gh release download` — verifies the
+    # published checksum before installing. Fetch the script from an immutable
+    # gdam commit, not mutable main: this action handles a workflow token and
+    # executes the downloaded bytes.
+    - name: Install GDAM
+      id: install
+      shell: bash
+      env:
+        GDAM_INSTALL_VERSION: ${{ inputs.version }}
+        GDAM_INSTALL_DIR: ${{ inputs.install-dir }}
+        # Read by the install script to authenticate the "latest" lookup. Named
+        # GDAM_GITHUB_TOKEN rather than GITHUB_TOKEN so this hands the script
+        # exactly what the caller chose, instead of quietly inheriting whatever
+        # the job happened to have in GITHUB_TOKEN.
+        GDAM_GITHUB_TOKEN: ${{ inputs.token }}
+      run: |
+        set -euo pipefail
+
+        dest="${GDAM_INSTALL_DIR:-$RUNNER_TEMP/gdam-bin}"
+        mkdir -p "$dest"
+
+        # Retry the fetch: this is a network call on every run of every repo
+        # that uses the action, and a transient 502 from raw.githubusercontent
+        # would otherwise fail the job outright. curl --retry covers exactly the
+        # transient HTTP statuses (408, 429, 5xx) plus connection failures.
+        curl -fsSL --retry 3 --retry-delay 2 \
+          https://raw.githubusercontent.com/aviorstudio/gdam/ac84c9c5b5d6845e0de8335c9d0c46552ad8b7db/scripts/install_cli.sh \
+          | VERSION="$GDAM_INSTALL_VERSION" INSTALL_DIR="$dest" sh
+
+        echo "$dest" >> "$GITHUB_PATH"
+
+        # Report what landed, and fail loudly here rather than several steps
+        # later at the first gdam command if the install silently did nothing.
+        if [ ! -x "$dest/gdam" ]; then
+          echo "gdam was not installed at $dest/gdam" >&2
+          exit 1
+        fi
+        installed="$("$dest/gdam" --version | head -n 1)"
+        echo "version=$installed" >> "$GITHUB_OUTPUT"
+        echo "Installed $installed"

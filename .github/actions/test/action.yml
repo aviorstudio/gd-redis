@@ -19,6 +19,16 @@ description: >
 runs:
   using: composite
   steps:
+    - name: Verify pinned workflow action contracts and negative controls
+      shell: bash
+      run: |
+        set -euo pipefail
+        python3 -m venv "$RUNNER_TEMP/gd-redis-workflow-contract"
+        python="$RUNNER_TEMP/gd-redis-workflow-contract/bin/python"
+        "$python" -m pip install --require-hashes -r tests/workflow-contract-requirements.txt
+        "$python" scripts/check-workflow-contract.py
+        "$python" -m unittest discover -s tests -p 'test_workflow_contract.py' -v
+
     # The addon's own file manifest. Listed rather than globbed: a file dropped
     # in a refactor is exactly what this catches, and a glob would happily match
     # whatever was left.
