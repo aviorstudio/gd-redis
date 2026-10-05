@@ -1,3 +1,5 @@
+<!-- Generated from private documentation source. Do not edit directly. Source SHA256: be2c32c78f8666f5ac1116844bfa537187f25d74616b2df2e21319a71f91f9de -->
+
 # gd-redis
 
 Connect to Redis from Godot 4 native or server builds using the RESP protocol over TCP.
@@ -67,56 +69,7 @@ redis.flushdb()
   Protocol, limit, timeout, cancellation, and mid-frame disconnect failures close
   the connection so a later command cannot consume a stale reply.
 
-## Repository Layout
-
-- `addon/`: Godot plugin source packaged for GDAM and manual installation.
-- `addon/plugin.cfg`: plugin name, version, description, and entry script.
-- `addon/src/`: reusable GDScript modules.
-- `tests/`: Godot test project/scripts for addon behavior.
-- `.github/workflows/ci.yml`: validates package shape and runs tests.
-- `.github/workflows/release.yml`: creates GitHub release ZIPs and publishes to GDAM.
-
-## Versioning And Releases
-
-The version in `addon/plugin.cfg` is the addon package version. Releases are created from `main` with the manual release workflow and plain semver tags like `v0.0.1`; the workflow verifies `plugin.cfg`, builds `@aviorstudio_gd-redis.zip`, and publishes `@aviorstudio/gd-redis` to GDAM.
-
-## Testing
-
-CI and release also check the pinned GDAM action input contracts, including
-negative/restored controls for unsupported publish inputs and a positive control
-for the valid install `version: v0.0.8`. Run these without Godot or Redis
-(on Linux x86_64 with Python 3.12 or 3.13):
-
-```sh
-python3 -m venv /tmp/gd-redis-workflow-contract
-/tmp/gd-redis-workflow-contract/bin/pip install --require-hashes -r tests/workflow-contract-requirements.txt
-/tmp/gd-redis-workflow-contract/bin/python scripts/check-workflow-contract.py
-/tmp/gd-redis-workflow-contract/bin/python -m unittest discover -s tests -p 'test_workflow_contract.py' -v
-```
-
-Run locally with:
-
-```sh
-./tests/test.sh
-```
-
-**Correction (fieldsofrevik#150):** CI and release run the mandatory Godot
-suite, runner negative controls, closed-manifest package checks, and a packaged
-editor lifecycle. Earlier wording said the suite ran "when available", which
-could imply that a missing suite was allowed to pass.
 
 ## License
 
-MIT
-
-## Tests
-
-Run `./tests/test.sh` with Godot and Docker installed. The suite starts a pinned,
-disposable Redis container on a random loopback port and removes it on exit.
-To use an existing local test Redis, set `REDIS_TEST_PORT`; the integration test
-uses only unique keys with a 30-second TTL and never flushes the database.
-Tests cover arbitrary and byte-by-byte fragmentation, pipelines, binary and
-Unicode bulk strings, malformed/oversized lengths, nesting and aggregate bounds,
-stalls, absolute deadlines, cancellation, mid-frame disconnects, and normal
-Redis integration. RESP bulk lengths count UTF-8 bytes, as required by the
-[Redis protocol](https://redis.io/docs/latest/develop/reference/protocol-spec/#bulk-strings).
+See `LICENSE`.
