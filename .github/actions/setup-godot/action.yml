@@ -1,9 +1,13 @@
-name: Setup checksummed Godot
-description: Install the supported Godot 4.7.2 Linux editor from checksum-verified bytes
-
+name: Setup verified Godot
+description: Install reviewed engine through released shared setup
 runs:
   using: composite
   steps:
-    - name: Install checksummed Godot 4.7.2
-      shell: bash
-      run: ./scripts/install-godot.sh "$RUNNER_TEMP/gd-redis-godot"
+  - uses: nicodes/tools/godot-setup@cf0e560c9bbb888488191fcce03409b6c6fbdc28
+    with:
+      version: 4.7.2
+      origin: godot
+      binary-checksum: sha256:cadd3204e728a35d3f13adb7fd0d7902636b79f6b95c40c265eb73b6c35329e4
+  - name: Preserve caller engine environment
+    shell: bash
+    run: printf "GODOT_BIN=%s\n" "$(command -v godot)" >> "$GITHUB_ENV"
