@@ -1,0 +1,128 @@
+name: 'Install GDAM'
+description: 'Install the gdam CLI (Godot Addon Manager) and put it on PATH'
+
+inputs:
+  version:
+    description: >-
+      Release to install: "latest", or a version with or without the leading v
+      ("0.0.7" and "v0.0.7" are the same). Pin it if you want reproducible runs.
+    required: false
+    default: 'latest'
+  archive-sha256:
+    description: Reviewed SHA256 of the selected release archive; requires an exact version
+    required: false
+    default: ''
+  install-dir:
+    description: >-
+      Where to put the binary. The default is under the runner temp directory,
+      which needs no sudo and disappears with the job.
+    required: false
+    default: ''
+  token:
+    description: >-
+      Token for the GitHub API call that resolves "latest". Defaults to the
+      workflow's own token, so callers need do nothing.
+
+      It is here because the unauthenticated API allows 60 requests an hour PER
+      IP ADDRESS and runners share addresses -- macOS runners heavily enough
+      that resolving "latest" returned 403 several times an hour, failing
+      installs intermittently in every repository using this action. A token
+      scopes that limit to the token instead: 1000/hour per repository.
+
+      Pass a different one only if the release you are installing lives
+      somewhere the workflow's own token cannot read.
+    required: false
+    default: ${{ github.token }}
+
+outputs:
+  version:
+    description: 'The version actually installed, as reported by gdam --version'
+    value: ${{ steps.install.outputs.version }}
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Validate immutable archive pin
+      shell: bash
+      env:
+        GDAM_VERSION: ${{ inputs.version }}
+        GDAM_SHA256: ${{ inputs.archive-sha256 }}
+      run: |
+        set -euo pipefail
+        if [ -n "$GDAM_SHA256" ]; then
+          [[ "$GDAM_SHA256" =~ ^[a-f0-9]{64}$ ]] || { echo 'Invalid archive SHA256' >&2; exit 1; }
+          [[ "$GDAM_VERSION" =~ ^v?[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo 'Archive pins require an exact release' >&2; exit 1; }
+        fi
+    - name: Cache the reviewed archive
+      if: inputs.archive-sha256 != ''
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      with:
+        path: ${{ runner.temp }}/gdam-reviewed/archive.tar.gz
+        key: gdam-${{ runner.os }}-${{ runner.arch }}-${{ inputs.version }}-${{ inputs.archive-sha256 }}
+    # Delegates to gdam's own install script rather than reimplementing the
+    # download here, so there is one definition of how gdam gets installed. The
+    # script resolves "latest", normalizes the tag, picks the right OS/arch
+    # artifact, and — unlike a plain `gh release download` — verifies the
+    # published checksum before installing. Fetch the script from an immutable
+    # gdam commit, not mutable main: this action handles a workflow token and
+    # executes the downloaded bytes.
+    - name: Install GDAM
+      id: install
+      shell: bash
+      env:
+        GDAM_ARCHIVE_SHA256: ${{ inputs.archive-sha256 }}
+        GDAM_INSTALL_VERSION: ${{ inputs.version }}
+        GDAM_INSTALL_DIR: ${{ inputs.install-dir }}
+        # Read by the install script to authenticate the "latest" lookup. Named
+        # GDAM_GITHUB_TOKEN rather than GITHUB_TOKEN so this hands the script
+        # exactly what the caller chose, instead of quietly inheriting whatever
+        # the job happened to have in GITHUB_TOKEN.
+        GDAM_GITHUB_TOKEN: ${{ inputs.token }}
+      run: |
+        set -euo pipefail
+
+        dest="${GDAM_INSTALL_DIR:-$RUNNER_TEMP/gdam-bin}"
+        mkdir -p "$dest"
+
+        # Retry the fetch: this is a network call on every run of every repo
+        # that uses the action, and a transient 502 from raw.githubusercontent
+        # would otherwise fail the job outright. curl --retry covers exactly the
+        # transient HTTP statuses (408, 429, 5xx) plus connection failures.
+        if [ -n "$GDAM_ARCHIVE_SHA256" ]; then
+          case "$(uname -s)/$(uname -m)" in
+            Linux/x86_64) platform=Linux_x86_64 ;;
+            Linux/aarch64|Linux/arm64) platform=Linux_arm64 ;;
+            Darwin/x86_64) platform=Darwin_x86_64 ;;
+            Darwin/arm64) platform=Darwin_arm64 ;;
+            *) echo 'Unsupported pinned GDAM platform' >&2; exit 1 ;;
+          esac
+          archive="$RUNNER_TEMP/gdam-reviewed/archive.tar.gz"
+          mkdir -p "$(dirname "$archive")"
+          if [ ! -f "$archive" ]; then
+            curl -fsSL --retry 3 "https://github.com/aviorstudio/gdam/releases/download/v${GDAM_INSTALL_VERSION#v}/gdam_$platform.tar.gz" -o "$archive"
+          fi
+          # Cache hits are verified too, before any bytes are executed.
+          python3 -c 'import hashlib,sys; from pathlib import Path; actual=hashlib.sha256(Path(sys.argv[1]).read_bytes()).hexdigest(); sys.exit(0 if actual == sys.argv[2] else "GDAM archive checksum differs from its reviewed pin")' "$archive" "$GDAM_ARCHIVE_SHA256"
+          tar -xzf "$archive" -C "$dest" gdam
+        else
+        curl -fsSL --retry 3 --retry-delay 2 \
+          https://raw.githubusercontent.com/aviorstudio/gdam/ac84c9c5b5d6845e0de8335c9d0c46552ad8b7db/scripts/install_cli.sh \
+          | VERSION="$GDAM_INSTALL_VERSION" INSTALL_DIR="$dest" sh
+
+        fi
+
+        echo "$dest" >> "$GITHUB_PATH"
+
+        # Report what landed, and fail loudly here rather than several steps
+        # later at the first gdam command if the install silently did nothing.
+        if [ ! -x "$dest/gdam" ]; then
+          echo "gdam was not installed at $dest/gdam" >&2
+          exit 1
+        fi
+        installed="$("$dest/gdam" --version | head -n 1)"
+        if [ -n "$GDAM_ARCHIVE_SHA256" ] && [ "$installed" != "gdam ${GDAM_INSTALL_VERSION#v}" ]; then
+          echo 'Installed GDAM version differs from its reviewed release' >&2
+          exit 1
+        fi
+        echo "version=$installed" >> "$GITHUB_OUTPUT"
+        echo "Installed $installed"
