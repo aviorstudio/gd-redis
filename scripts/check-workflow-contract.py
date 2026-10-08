@@ -7,13 +7,13 @@ import sys
 import yaml
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-ACTION_SHA = "d735444eb470194585def44521d5d91df2260e63"
+ACTION_SHA = "699727af05ff8da8f6816cc5c14a16b2b9470219"
 
 
 def check(workflow):
     contracts = {
         name: yaml.safe_load(
-            (ROOT / f"tests/fixtures/gdam-actions/{name}.yml").read_text()
+            (ROOT / f"tests/fixtures/gdam-actions/{ACTION_SHA}/{name}.yml").read_text()
         )["inputs"]
         for name in ("publish", "install")
     }
