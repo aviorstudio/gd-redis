@@ -93,15 +93,9 @@ jobs:
           TAG: ${{ steps.release.outputs.tag }}
         run: gh release create "$TAG" dist/*.zip --target "$GITHUB_SHA" --title "$TAG" --notes "Release $TAG"
 
-      - name: Install checksummed GDAM
-        uses: aviorstudio/gdam-actions/install@699727af05ff8da8f6816cc5c14a16b2b9470219 # v0.2.0
-        with:
-          version: v0.0.8
-          archive-sha256: 7ef2a325ad1416ce850a332f4380b1b290bd7a56e2a20f544536386cf64abb92
-
       - name: Publish to GDAM
-        uses: aviorstudio/gdam-actions/publish@699727af05ff8da8f6816cc5c14a16b2b9470219 # v0.2.0
+        uses: aviorstudio/gdam-actions/publish@af83a304fd0b3fcca5103e55118d6a88515d345e # v0.5.1
         with:
           tag: ${{ steps.release.outputs.tag }}
           asset: '@aviorstudio_gd-redis.zip'
-          secret-key: ${{ secrets.GDAM_SECRET_KEY }}
+          api-key: ${{ secrets.GDAM_API_KEY }}
