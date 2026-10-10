@@ -94,7 +94,7 @@ jobs:
         run: gh release create "$TAG" dist/*.zip --target "$GITHUB_SHA" --title "$TAG" --notes "Release $TAG"
 
       - name: Publish to GDAM
-        uses: aviorstudio/gdam-actions/publish@af83a304fd0b3fcca5103e55118d6a88515d345e # v0.5.1
+        uses: aviorstudio/gdam-actions/publish@6677226d9353df1d410f3e7f5075e13b3b7d5308 # v0.5.1
         with:
           tag: ${{ steps.release.outputs.tag }}
           asset: '@aviorstudio_gd-redis.zip'
