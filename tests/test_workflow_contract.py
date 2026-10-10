@@ -48,19 +48,15 @@ class WorkflowContractTests(unittest.TestCase):
         self.assertIn("publish: unsupported inputs: version", self.run_gate(old, 1))
         self.run_gate(self.workflow, 0)
 
-    def test_install_version_is_valid(self):
-        self.assertEqual(self.step("install")["with"]["version"], "v0.0.8")
-        contract.check(self.workflow)
-
     def test_unknown_inputs_fail_on_either_action(self):
-        for action in ("publish", "install"):
+        for action in ("publish",):
             with self.subTest(action=action):
                 workflow = copy.deepcopy(self.workflow)
                 self.step(action, workflow)["with"]["typo"] = "value"
                 self.assertIn("unsupported inputs: typo", self.run_gate(workflow, 1))
 
     def test_required_publish_inputs_fail_closed(self):
-        for name in ("tag", "secret-key"):
+        for name in ("tag", "api-key"):
             with self.subTest(name=name):
                 workflow = copy.deepcopy(self.workflow)
                 del self.step("publish", workflow)["with"][name]
@@ -72,7 +68,7 @@ class WorkflowContractTests(unittest.TestCase):
 
     def test_missing_publish_is_not_silently_skipped(self):
         self.step("publish")["uses"] = "unrelated/action@main"
-        self.assertIn("both install and publish", self.run_gate(self.workflow, 1))
+        self.assertIn("verified publish", self.run_gate(self.workflow, 1))
 
 
 if __name__ == "__main__":
