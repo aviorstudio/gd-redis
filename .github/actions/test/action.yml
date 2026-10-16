@@ -24,7 +24,8 @@ runs:
   - name: Validate addon package
     shell: bash
     run: test -f addon/plugin.cfg
-  - uses: ./.github/actions/setup-godot
+  - name: "Set up Godot"
+    uses: ./.github/actions/setup-godot
   - name: Prove runner negative and restored controls
     shell: bash
     run: make test
