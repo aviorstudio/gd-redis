@@ -1,9 +1,10 @@
-name: Setup verified Godot
+name: "Set up Godot"
 description: Install reviewed engine through released shared setup
 runs:
   using: composite
   steps:
-  - uses: nicodes/tools/godot-setup@cf0e560c9bbb888488191fcce03409b6c6fbdc28
+  - name: "Set up Godot"
+    uses: nicodes/tools/godot-setup@cf0e560c9bbb888488191fcce03409b6c6fbdc28
     with:
       version: 4.7.2
       origin: godot
