@@ -16,15 +16,17 @@ concurrency: release-${{ github.repository }}
 
 jobs:
   test:
+    name: "Test package"
     permissions:
       contents: read
     runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-      - name: Test exact release commit
+      - name: "Check out source"
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: "Test"
         uses: ./.github/actions/test
-      - name: Upload exact tested package
+      - name: "Upload artifacts"
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: gd-redis-addon-${{ github.sha }}
@@ -33,13 +35,15 @@ jobs:
           retention-days: 1
 
   release:
+    name: "Release"
     needs: test
     permissions:
       contents: write
     runs-on: blacksmith-2vcpu-ubuntu-2404
     timeout-minutes: 20
     steps:
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - name: "Check out source"
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
 
@@ -81,7 +85,7 @@ jobs:
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
 
-      - name: Download exact tested package
+      - name: "Download artifacts"
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
           name: gd-redis-addon-${{ github.sha }}
@@ -93,7 +97,7 @@ jobs:
           TAG: ${{ steps.release.outputs.tag }}
         run: gh release create "$TAG" dist/*.zip --target "$GITHUB_SHA" --title "$TAG" --notes "Release $TAG"
 
-      - name: Publish to GDAM
+      - name: "Publish addon"
         uses: aviorstudio/gdam-actions/publish@6677226d9353df1d410f3e7f5075e13b3b7d5308 # v0.5.1
         with:
           tag: ${{ steps.release.outputs.tag }}
