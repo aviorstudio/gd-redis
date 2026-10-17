@@ -4,7 +4,7 @@ runs:
   using: composite
   steps:
   - name: "Set up Godot"
-    uses: nicodes/tools/godot-setup@cf0e560c9bbb888488191fcce03409b6c6fbdc28
+    uses: nicodes/tools/godot-setup@ca747e13a51f301f51635c262d883d57d6084ae3 # v0.27.1
     with:
       version: 4.7.2
       origin: godot
