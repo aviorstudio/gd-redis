@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "recipe": "godot-addon",
+  "repository": "aviorstudio/gd-redis",
+  "validation": {
+    "workflow": {
+      "required": [
+        "ci.yml",
+        "dependency-policy.yml",
+        "release.yml"
+      ],
+      "ci_gates": [
+        "Test"
+      ]
+    }
+  }
+}
