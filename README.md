@@ -1,4 +1,4 @@
-<!-- Generated from private documentation source. Do not edit directly. Source SHA256: be2c32c78f8666f5ac1116844bfa537187f25d74616b2df2e21319a71f91f9de -->
+<!-- Generated from private documentation source. Do not edit directly. Source SHA256: 19a29ac32bfe7d5e30d9dce8fa072aea14365590058b746bb2dbbae5e892a80a -->
 
 # gd-redis
 
@@ -74,6 +74,14 @@ redis.flushdb()
 
 See `LICENSE`.
 
-## Standard developer commands
+## Repository development
 
-Run `make install` to install the checksum-pinned engineering release and exact Godot engine into checkout-owned output. Run `make check` for the existing package, behavioral and editor-lifecycle gates in order. `make build` creates the package; `make test` runs the behavioral gates, and `make artifact-smoke` checks the built package in the editor. `make clean` removes generated output. Development happens in a consuming Godot project, so standalone dev/stop are unsupported.
+Install the [Komizo release](https://github.com/nicodes/komizo#install) matching `komizo.lock`.
+
+```sh
+komizo check                 # Source, runtime, package and installed-addon checks
+komizo run test              # Focused addon test suite
+komizo run artifact-check    # Verify the built package
+```
+
+The addon recipe supplies the verified Godot engine and templates in checkout-owned tool/data directories. Interactive use belongs to a consuming Godot project.
