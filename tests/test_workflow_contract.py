@@ -64,7 +64,7 @@ class WorkflowContractTests(unittest.TestCase):
 
     def test_new_action_revision_requires_contract_update(self):
         self.step("publish")["uses"] = "aviorstudio/gdam-actions/publish@main"
-        self.assertIn("Unverified GDAM action contract", self.run_gate(self.workflow, 1))
+        self.assertIn("Unverified gdam action contract", self.run_gate(self.workflow, 1))
 
     def test_missing_publish_is_not_silently_skipped(self):
         self.step("publish")["uses"] = "unrelated/action@main"

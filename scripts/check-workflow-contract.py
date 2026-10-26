@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Check GDAM action inputs against immutable upstream contract snapshots."""
+"""Check gdam action inputs against immutable upstream contract snapshots."""
 
 import hashlib
 import pathlib
@@ -28,7 +28,7 @@ def check(workflow):
                 continue
             action, _, revision = uses.removeprefix("aviorstudio/gdam-actions/").partition("@")
             if action not in contracts or revision != ACTION_SHA:
-                raise ValueError(f"Unverified GDAM action contract: {uses}")
+                raise ValueError(f"Unverified gdam action contract: {uses}")
             inputs = step.get("with", {})
             unknown = set(inputs) - set(contracts[action])
             if unknown:
@@ -54,7 +54,7 @@ def main():
     except (ValueError, KeyError, TypeError, yaml.YAMLError) as error:
         print(f"FAIL workflow contract: {error}", file=sys.stderr)
         return 1
-    print("PASS workflow contract: pinned Clerk GDAM publish inputs")
+    print("PASS workflow contract: pinned Clerk gdam publish inputs")
     return 0
 
 
