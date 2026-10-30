@@ -8,17 +8,18 @@ import sys
 import yaml
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
-ACTION_SHA = "6677226d9353df1d410f3e7f5075e13b3b7d5308"
+FIXTURE_SHA = "6677226d9353df1d410f3e7f5075e13b3b7d5308"
+ACTION_SHA = "3a46007e296e60e15a4ad47727ad33046e52e6ea"
 
 
 def check(workflow):
     contracts = {
         name: yaml.safe_load(
-            (ROOT / f"tests/fixtures/gdam-actions/{ACTION_SHA}/{name}.yml").read_text()
+            (ROOT / f"tests/fixtures/gdam-actions/{FIXTURE_SHA}/{name}.yml").read_text()
         )["inputs"]
         for name in ("publish",)
     }
-    if hashlib.sha256((ROOT / f"tests/fixtures/gdam-actions/{ACTION_SHA}/publish.yml").read_bytes()).hexdigest() != "9b9de814668665eb77e34afab9929e9585b1f0047f9c31a8b05706447d27bd10":
+    if hashlib.sha256((ROOT / f"tests/fixtures/gdam-actions/{FIXTURE_SHA}/publish.yml").read_bytes()).hexdigest() != "9b9de814668665eb77e34afab9929e9585b1f0047f9c31a8b05706447d27bd10":
         raise ValueError("immutable publishing metadata changed")
     seen = set()
     for job in workflow["jobs"].values():
