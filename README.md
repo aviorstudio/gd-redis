@@ -1,4 +1,4 @@
-<!-- Generated from private documentation source. Do not edit directly. Source SHA256: 63339147dffeaa805a8ee0e7dcded310d334c6593a3451e4f6f7db9abeaaf6e2 -->
+<!-- Generated from private documentation source. Do not edit directly. Source SHA256: f8eaffb5bcfe507e88c0c774565993c3d192a38ed07767e388654f98be94530a -->
 
 # gd-redis
 
@@ -73,3 +73,16 @@ redis.flushdb()
 ## License
 
 See `LICENSE`.
+
+## Contributor checks
+
+Install [mise](https://mise.jdx.dev/), then prepare the pinned development helpers and run the complete native gate:
+
+```sh
+git clone https://github.com/nicodes/tools.git .ci-tools
+git -C .ci-tools checkout --detach f7e243524ce2aa29f299e4c79db33001f72f4a30
+mise install
+mise run check
+```
+
+`mise.toml` owns tool versions and tasks. Engine and template downloads are checksum verified. `mise run build` packages the addon; `mise run test` runs its declared tests. The complete check also validates the installed artifact. Build and test receipts stay in `.artifacts/verification`.
