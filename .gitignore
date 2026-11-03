@@ -3,3 +3,7 @@ dist/
 
 .artifacts/
 /.ci-tools/
+
+__pycache__/
+
+*.py[cod]
