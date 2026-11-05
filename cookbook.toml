@@ -1,0 +1,46 @@
+version = 1
+recipe = "godot-addon"
+
+[package]
+source = "addon"
+manifest = "package.files"
+archive = "dist/@aviorstudio_gd-redis.zip"
+
+[lint]
+required_paths = ["addon/plugin.cfg", "package.files"]
+
+[format]
+paths = ["addon", "tests/redis_client_module_test.gd", "tests/redis_deadline_integration_test.gd", "tests/redis_utf8_integration_test.gd", "tests/resp_parser_test.gd"]
+
+[clean]
+paths = ["dist", ".artifacts/build", ".artifacts/godot", ".artifacts/godot-data", ".artifacts/godot-config", ".artifacts/tmp", ".artifacts/playwright", ".godot", "node_modules"]
+
+[[tests.unit]]
+runner = "bash"
+path = "tests/test_runner_controls.sh"
+timeout = 60
+
+[[tests.unit]]
+runner = "bash"
+path = "tests/test.sh"
+timeout = 300
+
+[[tests.integration]]
+runner = "bash"
+path = "tests/package_controls.sh"
+timeout = 60
+
+[[tests.integration]]
+runner = "bash"
+path = "tests/editor_lifecycle_test.sh"
+timeout = 300
+
+[publication]
+tag_prefix = "v"
+initial = "first"
+validation_timeout = 20
+publish_timeout = 20
+assets = ["archive"]
+
+[ci]
+timeout_minutes = 30

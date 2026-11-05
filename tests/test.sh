@@ -33,4 +33,4 @@ for _attempt in $(seq 1 100); do
 done
 test -s "$resp_fixture_dir/port" || { cat "$resp_fixture_log"; exit 1; }
 export RESP_TEST_PORT="$(cat "$resp_fixture_dir/port")"
-"$SCRIPT_DIR/run_tests.sh" "$SCRIPT_DIR"
+python3 "${TOOLS_ROOT:?Pinned cookbook required}/helpers/godot-test.py" --project "$SCRIPT_DIR/.." --directory "$SCRIPT_DIR" --sentinel-prefix "PASS gd-redis" --timeout 45

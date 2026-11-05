@@ -18,7 +18,7 @@ checked_editor() {
 fixture="$scratch/project"
 mkdir -p "$fixture/addons/@aviorstudio_gd-redis"
 unzip -oq "$archive" -d "$fixture/addons/@aviorstudio_gd-redis"
-installed_digest="$(cd "$fixture/addons/@aviorstudio_gd-redis" && while IFS= read -r path; do sha256sum "$path"; done < "$root/addon/package-manifest.txt" | sha256sum | cut -d' ' -f1)"
+installed_digest="$(cd "$fixture/addons/@aviorstudio_gd-redis" && while IFS= read -r path; do sha256sum "$path"; done < "$root/package.files" | sha256sum | cut -d' ' -f1)"
 echo "Installed tree SHA-256: $installed_digest"
 cat > "$fixture/consumer_owned.gd" <<'GD'
 extends Node

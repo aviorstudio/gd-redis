@@ -4,7 +4,7 @@ root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 valid="$root/dist/@aviorstudio_gd-redis.zip"
 scratch="$(mktemp -d)"; trap 'rm -rf "$scratch"' EXIT
 expect_rejected() {
-  if "$root/scripts/verify-package.sh" "$1" >/dev/null 2>&1; then
+  if python3 "${TOOLS_ROOT:?Pinned cookbook required}/helpers/addon-package.py" verify --manifest "$root/package.files" --archive "$1" >/dev/null 2>&1; then
     echo "FAIL: package gate accepted $2" >&2; exit 1
   fi
   echo "PASS package gate rejected $2"
@@ -25,5 +25,5 @@ link = zipfile.ZipInfo('link.gd'); link.create_system = 3; link.external_attr = 
 write('symlink.zip', entries, (link, b'plugin.gd'))
 PY
 for kind in missing unexpected traversal symlink; do expect_rejected "$scratch/$kind.zip" "$kind archive"; done
-"$root/scripts/verify-package.sh" "$valid"
+python3 "${TOOLS_ROOT:?Pinned cookbook required}/helpers/addon-package.py" verify --manifest "$root/package.files" --archive "$valid"
 echo "PASS package controls restored"
