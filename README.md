@@ -1,4 +1,4 @@
-<!-- Generated from private documentation source. Do not edit directly. Source SHA256: acc096bb16e4f98f4a348aabda6cd33e63be76009f6a86cedd014dc90046d9f1 -->
+<!-- Generated from private documentation source. Do not edit directly. Source SHA256: 393bfc91b825b8954688c0136fca849263c049bd6cbb6334aae07de44f1f494f -->
 
 # gd-redis
 
@@ -74,19 +74,14 @@ redis.flushdb()
 
 See `LICENSE`.
 
-## Contributor checks
+## Contributor commands
 
-Install [mise](https://mise.jdx.dev/), then prepare the pinned development helpers and run the complete native gate:
+Install [mise](https://mise.jdx.dev/), then run:
 
 ```sh
-git clone https://github.com/nicodes/tools.git .ci-tools
-git -C .ci-tools checkout --detach f7e243524ce2aa29f299e4c79db33001f72f4a30
-mise install
-mise run check
+make setup
+make build
+make test
 ```
 
-`mise.toml` owns tool versions and tasks. Engine and template downloads are checksum verified. `mise run build` packages the addon; `mise run test` runs its declared tests. The complete check also validates the installed artifact. Build and test receipts stay in `.artifacts/verification`.
-
-## Contributor task interface
-
-Contributor tool versions and task entry points live in the native Mise configuration. Use `mise run lint` for source checks, `mise run test` for the applicable behavioral tests, and `mise run check` for the complete supported gate. `mise run clean` removes declared generated outputs while preserving source, credentials and retained data. This package has no application development service.
+`make help` lists the implemented commands offline. Mise pins SDK versions; the generated Makefile pins the shared cookbook. `make build` packages and verifies outputs, and `make test` runs the declared checks without rebuilding. Run `make build` again after changing source before packaged integration or browser tests. `make fmt` formats addon and test source; intentional invalid fixtures remain unchanged. `make clean` removes declared generated outputs.
