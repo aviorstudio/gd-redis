@@ -41,6 +41,3 @@ initial = "first"
 validation_timeout = 20
 publish_timeout = 20
 assets = ["archive"]
-
-[ci]
-timeout_minutes = 30
